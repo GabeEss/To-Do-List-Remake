@@ -10,6 +10,8 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
     const [inputValue, setInputValue] = useState<string>('');
     const [dragging, setDragging] = useState<boolean>(false);
     const [currentNoteId, setCurrentNoteId] = useState<number | null>(null);
+    const [topOfStackId, setTopOfStackId] = useState<number | null>(null);
+    const [refreshNote, setRefreshNote] = useState<boolean>(true);
     const [highestZIndex, setHighestZIndex] = useState<number>(1);
     const startPos = useRef<{ x: number, y: number}>({x: 50, y: 50});
     const dragOffset = useRef<{ x: number, y: number }>({x: 0, y: 0});
@@ -17,8 +19,10 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
     const getRandomColor = () => {
 
         const hue = Math.floor(Math.random() * 360); // Random hue between 0 and 360
-        const saturation = 70; // Fixed saturation to ensure vibrant colors
+        const saturation = 70;
         const lightness = 50; // Fixed lightness to avoid very dark or very light colors
+        
+        // The secondary color is for the draggable part of the note. 
         return {
             primary: `hsl(${hue}, ${saturation}%, ${lightness}%)`,
             secondary: `hsl(${hue}, ${saturation}%, ${lightness - 20}%)`
@@ -40,6 +44,18 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
             setNotes([...notes, newNote]);
             setInputValue('');
         }
+    }
+
+    const handleEdit = (id: number, value: string) => {
+        const updatedNotes = notes.map(note => {
+            if(id === note.id) {
+                return {
+                    ...note,
+                    content: value
+                }
+            } else return note;
+        })
+        setNotes(updatedNotes);
     }
 
     const handleMouseDown = (id: number, event: React.MouseEvent<HTMLDivElement>) => {
@@ -76,6 +92,7 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
 
     const handleMouseUp = () => {
         setDragging(false);
+        if(currentNoteId === topOfStackId) setRefreshNote(true);
         setCurrentNoteId(null);
     }
 
@@ -92,11 +109,29 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseup', handleMouseUp);
         }
-    }, [dragging])
+    }, [dragging]);
+
+    React.useEffect(() => {
+        if(refreshNote) {
+            const colors = getRandomColor();
+            const newNote: ToDo = {
+                id: new Date().getTime(),
+                content: "",
+                position: {x: startPos.current.x, y: startPos.current.y},
+                priority: false,
+                zIndex: 1,
+                color: colors.primary,
+                colorSecondary: colors.secondary
+            }
+            setNotes([...notes, newNote]);
+            setRefreshNote(false);
+            setTopOfStackId(newNote.id)
+        }
+    }, [refreshNote])
 
     return(
         <div className="container mt-4">
-            <div className="input-group mb-3">
+            {/* <div className="input-group mb-3">
                 <input
                     type="text"
                     className="form-control"
@@ -105,6 +140,9 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
                     placeholder="Add a note"
                 />
                 <button className="btn btn-primary" onClick={addNote}>Add Note</button>
+            </div> */}
+            <div>
+
             </div>
             <div className="notes-container">
                 {notes.map((note) => (
@@ -127,14 +165,13 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
                             }}
                         />
                         <div className="card-body">
-                        { currentNoteId === note.id ? <span>Hello</span> : <span>{note.content}</span> }
-                        {/* <input
+                        <input
                             type="textarea"
-                            className="form-control"
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
+                            className="form-control note-text"
+                            value={note.content}
+                            onChange={(e) => handleEdit(note.id, e.target.value)}
                             placeholder="Type here..."
-                        /> */}
+                        />
                         </div>
                     </div>
                 ))}

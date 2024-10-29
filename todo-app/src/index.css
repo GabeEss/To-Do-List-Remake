@@ -44,6 +44,9 @@
     width: 100%;
   }
 
+  .note-text {
+  }
+
   .trash-can {
     position: absolute;
     bottom: 2em;
