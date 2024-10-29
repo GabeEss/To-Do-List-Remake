@@ -6,4 +6,7 @@ export interface ToDo {
         y: number;
     };
     priority: boolean;
+    zIndex: number;
+    color: string;
+    colorSecondary: string;
 }
