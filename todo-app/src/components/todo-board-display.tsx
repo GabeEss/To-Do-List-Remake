@@ -7,17 +7,14 @@ interface ToDoBoardProps {
 
 const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
     const [notes, setNotes] = useState<ToDo[]>([]);
-    const [inputValue, setInputValue] = useState<string>('');
     const [dragging, setDragging] = useState<boolean>(false);
     const [currentNoteId, setCurrentNoteId] = useState<number | null>(null);
     const [topOfStackId, setTopOfStackId] = useState<number | null>(null);
-    const [refreshNote, setRefreshNote] = useState<boolean>(true);
     const [highestZIndex, setHighestZIndex] = useState<number>(1);
     const startPos = useRef<{ x: number, y: number}>({x: 50, y: 50});
     const dragOffset = useRef<{ x: number, y: number }>({x: 0, y: 0});
 
     const getRandomColor = () => {
-
         const hue = Math.floor(Math.random() * 360); // Random hue between 0 and 360
         const saturation = 70;
         const lightness = 50; // Fixed lightness to avoid very dark or very light colors
@@ -27,23 +24,6 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
             primary: `hsl(${hue}, ${saturation}%, ${lightness}%)`,
             secondary: `hsl(${hue}, ${saturation}%, ${lightness - 20}%)`
         };
-    }
-
-    const addNote = () => {
-        if(notes.length < maxNumber && inputValue.trim()) {
-            const colors = getRandomColor();
-            const newNote: ToDo = {
-                id: new Date().getTime(),
-                content: inputValue,
-                position: {x: startPos.current.x, y: startPos.current.y},
-                priority: false,
-                zIndex: 1,
-                color: colors.primary,
-                colorSecondary: colors.secondary
-            }
-            setNotes([...notes, newNote]);
-            setInputValue('');
-        }
     }
 
     const handleEdit = (id: number, value: string) => {
@@ -68,6 +48,21 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
             setCurrentNoteId(id);
             setDragging(true);
             setHighestZIndex(prevZIndex => prevZIndex + 1);
+
+            if(id === topOfStackId) {
+                const colors = getRandomColor();
+                const newNote: ToDo = {
+                    id: new Date().getTime(),
+                    content: "",
+                    position: {x: startPos.current.x, y: startPos.current.y},
+                    priority: false,
+                    zIndex: 1,
+                    color: colors.primary,
+                    colorSecondary: colors.secondary
+                }
+                setNotes([...notes, newNote]);
+                setTopOfStackId(newNote.id)
+            }
         }
     }
 
@@ -92,7 +87,6 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
 
     const handleMouseUp = () => {
         setDragging(false);
-        if(currentNoteId === topOfStackId) setRefreshNote(true);
         setCurrentNoteId(null);
     }
 
@@ -112,38 +106,22 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
     }, [dragging]);
 
     React.useEffect(() => {
-        if(refreshNote) {
-            const colors = getRandomColor();
-            const newNote: ToDo = {
-                id: new Date().getTime(),
-                content: "",
-                position: {x: startPos.current.x, y: startPos.current.y},
-                priority: false,
-                zIndex: 1,
-                color: colors.primary,
-                colorSecondary: colors.secondary
-            }
-            setNotes([...notes, newNote]);
-            setRefreshNote(false);
-            setTopOfStackId(newNote.id)
+        const colors = getRandomColor();
+        const newNote: ToDo = {
+            id: new Date().getTime(),
+            content: "",
+            position: {x: startPos.current.x, y: startPos.current.y},
+            priority: false,
+            zIndex: 1,
+            color: colors.primary,
+            colorSecondary: colors.secondary
         }
-    }, [refreshNote])
+        setNotes([...notes, newNote]);
+        setTopOfStackId(newNote.id)
+    }, []);
 
     return(
         <div className="container mt-4">
-            {/* <div className="input-group mb-3">
-                <input
-                    type="text"
-                    className="form-control"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    placeholder="Add a note"
-                />
-                <button className="btn btn-primary" onClick={addNote}>Add Note</button>
-            </div> */}
-            <div>
-
-            </div>
             <div className="notes-container">
                 {notes.map((note) => (
                     <div
