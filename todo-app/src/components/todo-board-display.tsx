@@ -40,9 +40,11 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
 
     const handleDelete = (event: React.MouseEvent<HTMLElement>, id: number) => {
         event.preventDefault();
-        const updatedNotes = notes.filter(note => note.id != id);
-        setNotes(updatedNotes);
-        setCurrentNoteId(null);
+        if(id != topOfStackId) {
+            const updatedNotes = notes.filter(note => note.id != id);
+            setNotes(updatedNotes);
+            setCurrentNoteId(null);
+        }
     }
 
     const handleMouseDown = (id: number, event: React.MouseEvent<HTMLDivElement>) => {
@@ -63,7 +65,7 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
                     content: "",
                     position: {x: startPos.current.x, y: startPos.current.y},
                     priority: false,
-                    zIndex: 1,
+                    zIndex: note.zIndex - 1,
                     color: colors.primary,
                     colorSecondary: colors.secondary
                 }
