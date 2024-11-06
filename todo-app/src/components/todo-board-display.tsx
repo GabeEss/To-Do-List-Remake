@@ -19,7 +19,7 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
         const saturation = 70;
         const lightness = 50; // Fixed lightness to avoid very dark or very light colors
         
-        // The secondary color is for the draggable part of the note. 
+        // The secondary color indicates the draggable part of the note. 
         return {
             primary: `hsl(${hue}, ${saturation}%, ${lightness}%)`,
             secondary: `hsl(${hue}, ${saturation}%, ${lightness - 20}%)`
@@ -36,6 +36,13 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
             } else return note;
         })
         setNotes(updatedNotes);
+    }
+
+    const handleDelete = (event: React.MouseEvent<HTMLElement>, id: number) => {
+        event.preventDefault();
+        const updatedNotes = notes.filter(note => note.id != id);
+        setNotes(updatedNotes);
+        setCurrentNoteId(null);
     }
 
     const handleMouseDown = (id: number, event: React.MouseEvent<HTMLDivElement>) => {
@@ -134,6 +141,12 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
                         backgroundColor: note.color,
                     }}
                     >
+                        <button 
+                            className="trash-can"
+                            onClick={(e) => handleDelete(e, note.id)}
+                            >
+                                <i className="bi bi-trash trash-can-icon"></i>
+                        </button>
                         <div
                             className="note-handle moveable"
                             onMouseDown={(e) => handleMouseDown(note.id, e)}
@@ -142,15 +155,12 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
                                 backgroundColor: note.colorSecondary
                             }}
                         />
-                        <div className="card-body">
-                        <input
-                            type="textarea"
+                        <textarea
                             className="form-control note-text"
                             value={note.content}
                             onChange={(e) => handleEdit(note.id, e.target.value)}
                             placeholder="Type here..."
                         />
-                        </div>
                     </div>
                 ))}
             </div>
