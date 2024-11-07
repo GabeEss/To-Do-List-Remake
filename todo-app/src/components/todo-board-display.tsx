@@ -1,11 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { ToDo } from "../types/todo";
 
-interface ToDoBoardProps {
-    maxNumber: number;
-}
-
-const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
+const ToDoBoardDisplay: React.FC = () => {
     const [notes, setNotes] = useState<ToDo[]>([]);
     const [dragging, setDragging] = useState<boolean>(false);
     const [currentNoteId, setCurrentNoteId] = useState<number | null>(null);
@@ -13,6 +9,50 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
     const [highestZIndex, setHighestZIndex] = useState<number>(1);
     const startPos = useRef<{ x: number, y: number}>({x: 50, y: 50});
     const dragOffset = useRef<{ x: number, y: number }>({x: 0, y: 0});
+
+    useEffect(() => {
+        generateNewNote();
+    }, []);
+
+    useEffect(() => {
+        if(notes.length > 0) {
+            // console.log("Save notes...");
+            localStorage.setItem("notes", JSON.stringify(notes)); 
+        }
+    }, [notes]); 
+
+    const getNotes = () => {
+        const storedNotes = localStorage.getItem("notes");
+            if(storedNotes) {
+                // console.log("Get notes");
+                const parsedNotes : ToDo[] = JSON.parse(storedNotes);
+                // console.log(parsedNotes);
+                return(parsedNotes);
+            } else return [];
+    }
+
+    const generateNewNote = () => {
+        const prevNotes = getNotes();
+        if(prevNotes.length != 0 ) { 
+            setNotes(prevNotes); 
+            // console.log(prevNotes);
+            setTopOfStackId(prevNotes[prevNotes.length - 1].id);
+        } else {
+            const colors = getRandomColor();
+                const newNote: ToDo = {
+                id: new Date().getTime(),
+                content: "",
+                position: {x: startPos.current.x, y: startPos.current.y},
+                priority: false,
+                zIndex: 1,
+                color: colors.primary,
+                colorSecondary: colors.secondary
+            }
+            setNotes([...notes, newNote]);
+            setTopOfStackId(newNote.id);
+        }
+        
+    }
 
     const getRandomColor = () => {
         const hue = Math.floor(Math.random() * 360); // Random hue between 0 and 360
@@ -113,21 +153,6 @@ const ToDoBoardDisplay: React.FC<ToDoBoardProps> = ({ maxNumber }) => {
             window.removeEventListener('mouseup', handleMouseUp);
         }
     }, [dragging]);
-
-    React.useEffect(() => {
-        const colors = getRandomColor();
-        const newNote: ToDo = {
-            id: new Date().getTime(),
-            content: "",
-            position: {x: startPos.current.x, y: startPos.current.y},
-            priority: false,
-            zIndex: 1,
-            color: colors.primary,
-            colorSecondary: colors.secondary
-        }
-        setNotes([...notes, newNote]);
-        setTopOfStackId(newNote.id)
-    }, []);
 
     return(
         <div className="container mt-4">
