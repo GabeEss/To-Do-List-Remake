@@ -11,7 +11,7 @@ const ToDoBoardDisplay: React.FC = () => {
     const dragOffset = useRef<{ x: number, y: number }>({x: 0, y: 0});
 
     useEffect(() => {
-        generateNewNote();
+        handleLoad();
     }, []);
 
     useEffect(() => {
@@ -19,7 +19,7 @@ const ToDoBoardDisplay: React.FC = () => {
             // console.log("Save notes...");
             localStorage.setItem("notes", JSON.stringify(notes)); 
         }
-    }, [notes]); 
+    }, [notes]);
 
     const getNotes = () => {
         const storedNotes = localStorage.getItem("notes");
@@ -31,7 +31,7 @@ const ToDoBoardDisplay: React.FC = () => {
             } else return [];
     }
 
-    const generateNewNote = () => {
+    const handleLoad = () => {
         const prevNotes = getNotes();
         if(prevNotes.length != 0 ) { 
             setNotes(prevNotes); 
@@ -44,14 +44,13 @@ const ToDoBoardDisplay: React.FC = () => {
                 content: "",
                 position: {x: startPos.current.x, y: startPos.current.y},
                 priority: false,
-                zIndex: 1,
+                zIndex: -2,
                 color: colors.primary,
                 colorSecondary: colors.secondary
             }
             setNotes([...notes, newNote]);
             setTopOfStackId(newNote.id);
         }
-        
     }
 
     const getRandomColor = () => {
@@ -98,6 +97,17 @@ const ToDoBoardDisplay: React.FC = () => {
             setDragging(true);
             setHighestZIndex(prevZIndex => prevZIndex + 1);
 
+            // To ensure the new note overlays the previous largest note and newest note
+            const updatedNotes = notes.map(note => {
+                if (note.id === id) {
+                    return {
+                        ...note,
+                        zIndex: highestZIndex
+                    }
+                }
+                return note;
+            });
+
             if(id === topOfStackId) {
                 const colors = getRandomColor();
                 const newNote: ToDo = {
@@ -105,13 +115,13 @@ const ToDoBoardDisplay: React.FC = () => {
                     content: "",
                     position: {x: startPos.current.x, y: startPos.current.y},
                     priority: false,
-                    zIndex: note.zIndex - 1,
+                    zIndex: 0,
                     color: colors.primary,
                     colorSecondary: colors.secondary
                 }
-                setNotes([...notes, newNote]);
+                setNotes([...updatedNotes, newNote]);
                 setTopOfStackId(newNote.id)
-            }
+            } else setNotes(updatedNotes);
         }
     }
 
@@ -154,43 +164,43 @@ const ToDoBoardDisplay: React.FC = () => {
         }
     }, [dragging]);
 
-    return(
-        <div className="container mt-4">
-            <div className="notes-container">
-                {notes.map((note) => (
+    
+
+    return(     
+        <div className="notes-container">
+            {notes.map((note) => (
+                <div
+                key={note.id}
+                className={`note card ${dragging && currentNoteId === note.id ? 'dragging' : ""}`}
+                style={{
+                    left: note.position.x,
+                    top: note.position.y,
+                    zIndex: note.zIndex,
+                    backgroundColor: note.color,
+                }}
+                >
+                    <button 
+                        className="trash-can"
+                        onClick={(e) => handleDelete(e, note.id)}
+                        >
+                            <i className="bi bi-trash trash-can-icon"></i>
+                    </button>
                     <div
-                    key={note.id}
-                    className={`note card ${dragging && currentNoteId === note.id ? 'dragging' : ""}`}
-                    style={{
-                        left: note.position.x,
-                        top: note.position.y,
-                        zIndex: note.zIndex,
-                        backgroundColor: note.color,
-                    }}
-                    >
-                        <button 
-                            className="trash-can"
-                            onClick={(e) => handleDelete(e, note.id)}
-                            >
-                                <i className="bi bi-trash trash-can-icon"></i>
-                        </button>
-                        <div
-                            className="note-handle moveable"
-                            onMouseDown={(e) => handleMouseDown(note.id, e)}
-                            style={{
-                                cursor: 'grab',
-                                backgroundColor: note.colorSecondary
-                            }}
-                        />
-                        <textarea
-                            className="form-control note-text"
-                            value={note.content}
-                            onChange={(e) => handleEdit(note.id, e.target.value)}
-                            placeholder="Type here..."
-                        />
-                    </div>
-                ))}
-            </div>
+                        className="note-handle moveable"
+                        onMouseDown={(e) => handleMouseDown(note.id, e)}
+                        style={{
+                            cursor: 'grab',
+                            backgroundColor: note.colorSecondary
+                        }}
+                    />
+                    <textarea
+                        className="form-control note-text"
+                        value={note.content}
+                        onChange={(e) => handleEdit(note.id, e.target.value)}
+                        placeholder="Type here..."
+                    />
+                </div>
+            ))}
         </div>
     )
 }

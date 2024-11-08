@@ -10,18 +10,14 @@
 }
 
 .todo-board {
-    padding: 20px;
-    background-color: black;
+    /* display: flex; */
     height: 100vh;
-    width: 100vw;
+    padding: 2em;
     position: relative;
-  }
- 
-  .new-note-container {
-
   }
 
   .notes-container {
+    height: 100%;
     position: relative;
   }
   
@@ -94,4 +90,3 @@
     width: 100%;
     height: 100%;
   }
-  
