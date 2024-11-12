@@ -44,7 +44,7 @@ const ToDoBoardDisplay: React.FC = () => {
                 content: "",
                 position: {x: startPos.current.x, y: startPos.current.y},
                 priority: false,
-                zIndex: -2,
+                zIndex: 0,
                 color: colors.primary,
                 colorSecondary: colors.secondary
             }
