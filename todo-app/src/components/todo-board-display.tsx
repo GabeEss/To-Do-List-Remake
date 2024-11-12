@@ -171,7 +171,9 @@ const ToDoBoardDisplay: React.FC = () => {
             {notes.map((note) => (
                 <div
                 key={note.id}
-                className={`note card ${dragging && currentNoteId === note.id ? 'dragging' : ""}`}
+                className={`note card 
+                    ${dragging && currentNoteId === note.id ? 'dragging' : ""}
+                    ${topOfStackId === note.id ? 'topofstack' : ""}`}
                 style={{
                     left: note.position.x,
                     top: note.position.y,
